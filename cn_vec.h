@@ -112,9 +112,8 @@ cnv_uint __cn_vec_gen_capacity(cnv_uint);
 /*
     2016-05-20 (1.0.2)
       - Added function "__cn_vec_gen_capacity", which you shouldn't use.
-	  - Added function "cn_vec_capacity".
-	  - Added global variable storing powers of 2 up to 2^31.
-	  - Implemented exponential growth via capacity. This replaces linear growth.
+      - Added function "cn_vec_capacity".
+      - Implemented exponential growth via capacity. This replaces linear growth.
 
     2016-05-16 (1.0.1)
       - Nope, not the only release.
