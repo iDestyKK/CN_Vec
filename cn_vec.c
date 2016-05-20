@@ -205,8 +205,8 @@ void cn_vec_free(CN_VEC vec) {
 
 //Functions you won't use if you are sane
 cnv_uint __cn_vec_gen_capacity(cnv_uint size) {
-	//Constant time implementation
-	size--;
-	size |= size >> 1 | size >> 2 | size >> 4 | size >> 8 | size >> 16;
+    //Constant time implementation
+    size--;
+    size |= size >> 1 | size >> 2 | size >> 4 | size >> 8 | size >> 16;
     return ++size;
 }
