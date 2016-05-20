@@ -1,12 +1,12 @@
 /*
  * CN_Vec Library
  *
- * Version 1.0.1 (Last Updated 2016-05-16)
+ * Version 1.0.2 (Last Updated 2016-05-20)
  *
  * Description:
- *     C lacks vectors from C++.
- *     A CN_Vec is like a vector in C++, only you have to do some additional things for it to work.
- *     If anything, this library will probably make you switch to C++ for your stuff. :P
+ *     C++ Vectors for C library. Implements the data structure with a struct
+ *     and use of realloc() along with exponential expansion via a lookup table.
+ *     Any datatype can be stored in a CN_Vec, just like C++ Vectors.
  *
  *     Changelog of library is located at the bottom of "cn_vec.h"
  *
@@ -19,6 +19,12 @@
 
 #include "cn_vec.h"
 
+//Global Variable for lookup table
+cnv_uint __cap_lookup_table[32] = { 1      , 1 <<  1, 1 <<  2, 1 <<  3, 1 <<  4, 1 <<  5, 1 <<  6, 1 <<  7,
+                                    1 <<  8, 1 <<  9, 1 << 10, 1 << 11, 1 << 12, 1 << 13, 1 << 14, 1 << 15,
+                                    1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20, 1 << 21, 1 << 22, 1 << 23,
+                                    1 << 24, 1 << 25, 1 << 26, 1 << 27, 1 << 28, 1 << 29, 1 << 30, 1 << 31 };
+
 //Functions
 //Initializer
 CN_VEC new_cn_vec(cnv_uint size) {
@@ -27,28 +33,35 @@ CN_VEC new_cn_vec(cnv_uint size) {
     vec->size      = 0;
     vec->data      = NULL; //The void of space as we know it.
     vec->elem_size = size; //Size of each element.
+    vec->capacity  = 0;
 
     return vec;
 }
 
 //Add
 void cn_vec_push_back(CN_VEC vec, void* ptr) {
-    if (vec->size == 0) {
+    //cnv_uint __cap = __cn_vec_gen_capacity(vec->size + 1);
+    /*if (vec->size == 0) {
         //Our vector is empty. Initialize the memory properly.
         vec->data = (void *) malloc(vec->elem_size);
         if (vec->data != NULL)
             memcpy(vec->data, ptr, vec->elem_size);
     } else {
         //It's already allocated. Let's expand on it.
-        void* new_vec = realloc(vec->data, vec->elem_size * (vec->size + 1));
-        if (!new_vec) {
-            return; //Memory Error
-        } else {
-            vec->data = new_vec;
+        if (__cap != vec->capacity) {
+            void* new_vec = realloc(vec->data, vec->elem_size * __cap);
+            if (!new_vec) {
+                return; //Memory Error
+            } else {
+                vec->data = new_vec;
+            }
         }
         memcpy(vec->data + (vec->size * vec->elem_size), ptr, vec->elem_size);
     }
-    vec->size++;
+	vec->size++;*/
+
+    cn_vec_resize(vec, vec->size + 1);
+    memcpy(vec->data + ((vec->size - 1) * vec->elem_size), ptr, vec->elem_size);
 }
 
 void cn_vec_insert(CN_VEC vec, cnv_uint pos, void* ptr) {
@@ -67,13 +80,15 @@ void cn_vec_insert(CN_VEC vec, cnv_uint pos, void* ptr) {
 
 //Set
 void cn_vec_resize(CN_VEC vec, cnv_uint size) {
+    cnv_uint __cap = __cn_vec_gen_capacity(size);
     if (vec->data == NULL)
-        vec->data = (void *) malloc(vec->elem_size * size);
-    else {
+        vec->data = (void *) malloc(vec->elem_size * __cap);
+    else
+    if (__cap != vec->capacity) {
         if (size == 0)
             free(vec->data);
         else {
-            void* new_vec = (void *) realloc(vec->data, vec->elem_size * size);
+            void* new_vec = (void *) realloc(vec->data, vec->elem_size * __cap);
             if (!new_vec)
                 return; //Memory Error
             else
@@ -81,6 +96,7 @@ void cn_vec_resize(CN_VEC vec, cnv_uint size) {
         }
     }
     vec->size = size;
+    vec->capacity = __cap;
 }
 
 void cn_vec_set(CN_VEC vec, cnv_uint pos, void* ptr) {
@@ -90,9 +106,7 @@ void cn_vec_set(CN_VEC vec, cnv_uint pos, void* ptr) {
 }
 
 void cn_vec_delete(CN_VEC vec, cnv_uint pos) {
-    memmove(vec->data +  (pos      * vec->elem_size),
-            vec->data + ((pos + 1) * vec->elem_size),
-            (vec->size - 1 - pos) * vec->elem_size);
+    memmove(vec->data +  (pos * vec->elem_size), vec->data + ((pos + 1) * vec->elem_size), (vec->size - 1 - pos) * vec->elem_size);
     /*cnv_uint i = pos;
     for (; i < vec->size - 1; i++)
         memcpy(vec->data + (i * vec->elem_size), vec->data + ((i + 1) * vec->elem_size), vec->elem_size);*/
@@ -104,6 +118,7 @@ void cn_vec_copy(CN_VEC dest, CN_VEC src) {
         return;
     dest->size      = src->size;
     dest->elem_size = src->elem_size;
+    dest->capacity  = src->capacity;
 
     cn_vec_resize(dest, src->size);
     memcpy(dest->data, src->data, src->size * src->elem_size);
@@ -169,6 +184,10 @@ cnv_uint cn_vec_element_size(CN_VEC vec) {
     return vec->elem_size;
 }
 
+cnv_uint cn_vec_capacity(CN_VEC vec) {
+	return vec->capacity;
+}
+
 cnv_byte cn_vec_empty(CN_VEC vec) {
     return (vec->size == 0);
 }
@@ -188,4 +207,12 @@ void cn_vec_free(CN_VEC vec) {
     if (vec->size != 0)
         free(vec->data);
     free(vec);
+}
+
+//Functions you won't use if you are sane
+cnv_uint __cn_vec_gen_capacity(cnv_uint size) {
+	//Constant time implementation
+	size--;
+	size |= size >> 1 | size >> 2 | size >> 4 | size >> 8 | size >> 16;
+    return ++size;
 }

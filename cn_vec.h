@@ -1,12 +1,12 @@
 /*
  * CN_Vec Library
  *
- * Version 1.0.1 (Last Updated 2016-05-16)
+ * Version 1.0.2 (Last Updated 2016-05-16)
  *
  * Description:
- *     C lacks vectors from C++.
- *     A CN_Vec is like a vector in C++, only you have to do some additional things for it to work.
- *     If anything, this library will probably make you switch to C++ for your stuff. :P
+ *     C++ Vectors for C library. Implements the data structure with a struct
+ *     and use of realloc() along with exponential expansion via a lookup table.
+ *     Any datatype can be stored in a CN_Vec, just like C++ Vectors.
  *
  *     Changelog of library is located at the bottom of this file.
  *
@@ -24,17 +24,22 @@
 #include <string.h>
 
 //Custom Types
-typedef unsigned int  cnv_uint;
-typedef unsigned char cnv_byte;
+typedef unsigned int       cnv_uint;
+typedef unsigned long long cnv_u64;
+typedef unsigned char      cnv_byte;
 
 //Structs
 typedef struct cn_vec {
     void*    data;
     cnv_uint elem_size,
-             size;
+             size,
+             capacity;
 } *CN_VEC;
 
 typedef CN_VEC VECTOR; //For you C++ people...
+
+//Global Variable for lookup table
+extern cnv_uint __cap_lookup_table[32];
 
 //Functions
 //Initializer
@@ -60,6 +65,7 @@ void     cn_vec_reverse     (CN_VEC);
 void*    cn_vec_at          (CN_VEC, cnv_uint);
 cnv_uint cn_vec_size        (CN_VEC);
 cnv_uint cn_vec_element_size(CN_VEC);
+cnv_uint cn_vec_capacity    (CN_VEC);
 cnv_byte cn_vec_empty       (CN_VEC);
 void*    cn_vec_data        (CN_VEC);
 
@@ -71,6 +77,9 @@ void*    cn_vec_rend        (CN_VEC);
 
 //Deinitializer
 void     cn_vec_free        (CN_VEC);
+
+//Functions you won't use if you are sane
+cnv_uint __cn_vec_gen_capacity(cnv_uint);
 
 //Macros
 #define cn_vec_deref(ptr, type) \
@@ -104,6 +113,12 @@ void     cn_vec_free        (CN_VEC);
 \***************************************/
 
 /*
+    2016-05-20 (1.0.2)
+      - Added function "__cn_vec_gen_capacity", which you shouldn't use.
+	  - Added function "cn_vec_capacity".
+	  - Added global variable storing powers of 2 up to 2^31.
+	  - Implemented exponential growth via capacity. This replaces linear growth.
+
     2016-05-16 (1.0.1)
       - Nope, not the only release.
       - Reorganized functions.
