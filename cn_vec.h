@@ -5,7 +5,7 @@
  *
  * Description:
  *     C++ Vectors for C library. Implements the data structure with a struct
- *     and use of realloc() along with exponential expansion via a lookup table.
+ *     and use of realloc() along with exponential expansion via a binary math.
  *     Any datatype can be stored in a CN_Vec, just like C++ Vectors.
  *
  *     Changelog of library is located at the bottom of this file.
@@ -37,9 +37,6 @@ typedef struct cn_vec {
 } *CN_VEC;
 
 typedef CN_VEC VECTOR; //For you C++ people...
-
-//Global Variable for lookup table
-extern cnv_uint __cap_lookup_table[32];
 
 //Functions
 //Initializer
