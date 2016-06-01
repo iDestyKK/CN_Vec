@@ -55,7 +55,7 @@ void cn_vec_push_back(CN_VEC vec, void* ptr) {
 	vec->size++;*/
 
     cn_vec_resize(vec, vec->size + 1);
-    memcpy(vec->data + ((vec->size - 1) * vec->elem_size), ptr, vec->elem_size);
+    memcpy((char*)vec->data + ((vec->size - 1) * vec->elem_size), ptr, vec->elem_size);
 }
 
 void cn_vec_insert(CN_VEC vec, cnv_uint pos, void* ptr) {
@@ -67,8 +67,8 @@ void cn_vec_insert(CN_VEC vec, cnv_uint pos, void* ptr) {
     else {
         cn_vec_resize(vec, vec->size + 1);
         //Abuse the fact that memmove uses a buffer to allow overlaying
-        memmove(vec->data + ((pos + 1) * vec->elem_size), vec->data + (pos * vec->elem_size), (vec->size - 1 - pos) * vec->elem_size);
-        memcpy(vec->data + (pos * vec->elem_size), ptr, vec->elem_size);
+        memmove((char*)vec->data + ((pos + 1) * vec->elem_size), (char*)vec->data + (pos * vec->elem_size), (vec->size - 1 - pos) * vec->elem_size);
+        memcpy((char*)vec->data + (pos * vec->elem_size), ptr, vec->elem_size);
     }
 }
 
@@ -82,7 +82,7 @@ void cn_vec_resize(CN_VEC vec, cnv_uint size) {
         if (size == 0)
             free(vec->data);
         else {
-            void* new_vec = (void *) realloc(vec->data, vec->elem_size * __cap);
+            void* new_vec = (void *) realloc((char*)vec->data, vec->elem_size * __cap);
             if (!new_vec)
                 return; //Memory Error
             else
@@ -96,11 +96,11 @@ void cn_vec_resize(CN_VEC vec, cnv_uint size) {
 void cn_vec_set(CN_VEC vec, cnv_uint pos, void* ptr) {
     if (pos >= vec->size)
         return; //You failed.
-    memcpy(vec->data + (pos * vec->elem_size), ptr, vec->elem_size);
+    memcpy((char*)vec->data + (pos * vec->elem_size), ptr, vec->elem_size);
 }
 
 void cn_vec_delete(CN_VEC vec, cnv_uint pos) {
-    memmove(vec->data +  (pos * vec->elem_size), vec->data + ((pos + 1) * vec->elem_size), (vec->size - 1 - pos) * vec->elem_size);
+    memmove((char*)vec->data +  (pos * vec->elem_size), (char*)vec->data + ((pos + 1) * vec->elem_size), (vec->size - 1 - pos) * vec->elem_size);
     /*cnv_uint i = pos;
     for (; i < vec->size - 1; i++)
         memcpy(vec->data + (i * vec->elem_size), vec->data + ((i + 1) * vec->elem_size), vec->elem_size);*/
@@ -130,8 +130,8 @@ void cn_vec_swap(CN_VEC vec, cnv_uint pos1, cnv_uint pos2) {
         cnv_byte *b1, *b2;
 
         //XOR Swap > Malloc & Free... by 0.1 seconds :)
-        b1 = vec->data + (pos1 * vec->elem_size);
-        b2 = vec->data + (pos2 * vec->elem_size);
+        b1 = (char*)vec->data + (pos1 * vec->elem_size);
+        b2 = (char*)vec->data + (pos2 * vec->elem_size);
 
         for (; i < vec->elem_size; i++) {
             *b1   ^= *b2;
@@ -167,7 +167,7 @@ void* cn_vec_at(CN_VEC vec, cnv_uint pos) {
     if (pos < 0 || pos >= vec->size)
         return (void*)0xDEADBEEF; //Nice try. Segfault land for you buddy.
 
-    return vec->data + (pos * vec->elem_size); //I'm in a good mood today.
+    return (char*)vec->data + (pos * vec->elem_size); //I'm in a good mood today.
 }
 
 cnv_uint cn_vec_size(CN_VEC vec) {
@@ -192,9 +192,9 @@ void* cn_vec_data(CN_VEC vec) {
 
 //Iteration
 void* cn_vec_begin (CN_VEC vec) { return vec->data; }
-void* cn_vec_end   (CN_VEC vec) { return vec->data + (vec->size * vec->elem_size); }
-void* cn_vec_rbegin(CN_VEC vec) { return vec->data + (vec->size * vec->elem_size) - vec->elem_size; }
-void* cn_vec_rend  (CN_VEC vec) { return vec->data - vec->elem_size; }
+void* cn_vec_end   (CN_VEC vec) { return (char*)vec->data + (vec->size * vec->elem_size); }
+void* cn_vec_rbegin(CN_VEC vec) { return (char*)vec->data + (vec->size * vec->elem_size) - vec->elem_size; }
+void* cn_vec_rend  (CN_VEC vec) { return (char*)vec->data - vec->elem_size; }
 
 //Deinitializer
 void cn_vec_free(CN_VEC vec) {
