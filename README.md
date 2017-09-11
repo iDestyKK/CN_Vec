@@ -1,4 +1,4 @@
-#CN_Vec
+# CN_Vec
 A C library that implements C++ Vectors in C.
 
 C is a different, and less forgiving language (Depending on how you take it) compared to C++. You have to manage memory yourself, and you have to program all of the data structures yourself if you actually want to use them. In C++, you have the STL library which implements double-linked lists, hash tables, maps, etc. But one of the first data structures you learn is the Vector, a dynamically resizable array.
